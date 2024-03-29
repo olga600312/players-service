@@ -1,4 +1,4 @@
-package il.tsv.test.playersservice.dto;
+package il.tsv.test.playersservice.error;
 
 import java.util.List;
 

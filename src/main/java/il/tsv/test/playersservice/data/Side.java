@@ -1,36 +1,19 @@
 package il.tsv.test.playersservice.data;
 
-public enum Bats {
-    NOT_DEFINED {
-        @Override
-        public String toDTO() {
-            return "";
-        }
-    }, LEFT {
-        @Override
-        public String toDTO() {
-            return "L";
-        }
-    }, RIGHT {
-        @Override
-        public String toDTO() {
-            return "R";
-        }
-    }, BOTH {
-        @Override
-        public String toDTO() {
-            return "B";
-        }
-    };
+/*
+ *  Represents the side of a player's batting or throwing hand.
+ */
+public enum Side {
+    NOT_DEFINED, L, R, B;
 
-    public abstract String toDTO();
 
-    public static Bats fromDTO(String str) {
-        return switch (str) {
-            case "R" -> RIGHT;
-            case "L" -> LEFT;
-            case "B" -> BOTH;
+    public static Side fromDTO(String str) {
+        return str != null ? switch (str) {
+            case "R" -> R;
+            case "L" -> L;
+            case "B" -> B;
+            //case null-> NOT_DEFINED;
             default -> NOT_DEFINED;
-        };
+        } : NOT_DEFINED;
     }
 }

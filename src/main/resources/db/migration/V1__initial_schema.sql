@@ -1,7 +1,28 @@
-CREATE TABLE `task`
-(
-    `id`        CHAR(255) NOT NULL,
-    `details`   TEXT      NOT NULL,
-    `completed` BIT(1)    NOT NULL DEFAULT 0,
-    PRIMARY KEY (`id`) USING BTREE
-);
+CREATE TABLE `players` (
+                           `birth_day` INT NULL DEFAULT NULL,
+                           `birth_month` INT NULL DEFAULT NULL,
+                           `birth_year` INT NULL DEFAULT NULL,
+                           `death_day` INT NULL DEFAULT NULL,
+                           `death_month` INT NULL DEFAULT NULL,
+                           `death_year` INT NULL DEFAULT NULL,
+                           `height` INT NULL DEFAULT NULL,
+                           `weight` INT NULL DEFAULT NULL,
+                           `debut` DATETIME(6) NULL DEFAULT NULL,
+                           `final_game` DATETIME(6) NULL DEFAULT NULL,
+                           `bbrefid` VARCHAR(255) NULL DEFAULT NULL ,
+                           `birth_city` VARCHAR(255) NULL DEFAULT NULL ,
+                           `birth_country` VARCHAR(255) NULL DEFAULT NULL ,
+                           `birth_state` VARCHAR(255) NULL DEFAULT NULL ,
+                           `death_city` VARCHAR(255) NULL DEFAULT NULL ,
+                           `death_country` VARCHAR(255) NULL DEFAULT NULL ,
+                           `death_state` VARCHAR(255) NULL DEFAULT NULL ,
+                           `name_first` VARCHAR(255) NULL DEFAULT NULL ,
+                           `name_given` VARCHAR(255) NULL DEFAULT NULL ,
+                           `name_last` VARCHAR(255) NULL DEFAULT NULL ,
+                           `playerid` VARCHAR(255) NOT NULL ,
+                           `retroid` VARCHAR(255) NULL DEFAULT NULL ,
+                           `bats` ENUM('NOT_DEFINED','L','R','B') NULL DEFAULT NULL ,
+                           `thrws` ENUM('NOT_DEFINED','L','R','B') NULL DEFAULT NULL ,
+                           PRIMARY KEY (`playerid`) USING BTREE
+)
+ENGINE=InnoDB;
