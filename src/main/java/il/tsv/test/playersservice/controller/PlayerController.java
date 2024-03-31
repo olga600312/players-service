@@ -23,7 +23,7 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api")
-public class PlayerController {
+public class  PlayerController {
     private MessageSource messageSource;
     private PlayerService playerService;
 
