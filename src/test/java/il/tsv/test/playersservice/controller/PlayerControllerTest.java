@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -47,6 +48,7 @@ class PlayerControllerTest {
 
         //then
         List<PlayerDTO> body = responseEntity.getBody();
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         assertInstanceOf(List.class, body);
         assertNotNull(body);
         assertEquals(list.size(), body.size());
@@ -70,6 +72,7 @@ class PlayerControllerTest {
         ResponseEntity<?> responseEntity = controller.getPageablePlayers(0, 20, Locale.US);
 
         //then
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         if (responseEntity.getBody() instanceof Page<?> p) {
             assertEquals(p.getTotalElements(), list.size());
