@@ -39,11 +39,6 @@ public class PlayerServiceImplTest {
     @InjectMocks
     private PlayerServiceImpl playerService;
 
-    /*@BeforeEach
-    void setup() {
-        playerService = new PlayerServiceImpl(playerRepository,playerMapper,meterRegistry);
-    }*/
-
 
 
 

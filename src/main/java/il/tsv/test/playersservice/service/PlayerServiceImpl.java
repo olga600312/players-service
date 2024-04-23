@@ -46,6 +46,7 @@ public class PlayerServiceImpl implements PlayerService {
         Player player = playerRepository.findById(id).orElse(null);
         meterRegistry.counter("get_player_by_id", List.of(Tag.of("id", id))).increment();
 
+
         return player != null ? playerMapper.toPlayerDto(player) : null;
     }
 
