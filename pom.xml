@@ -10,7 +10,7 @@
     </parent>
     <groupId>il.tsv.test</groupId>
     <artifactId>players-service</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <name>players-service</name>
     <description>players-service</description>
     <properties>

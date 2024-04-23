@@ -78,6 +78,7 @@ public class  PlayerController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlayerById(@PathVariable String id, @RequestHeader(required = false, defaultValue = "en_US") Locale locale) {
+
         PlayerDTO dto = playerService.getPlayerById(id);
         if (dto == null) {
             final var message = Optional.ofNullable(messageSource
