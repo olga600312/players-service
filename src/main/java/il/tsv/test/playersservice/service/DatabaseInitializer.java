@@ -40,6 +40,7 @@ public class DatabaseInitializer {
             long t1 = System.currentTimeMillis();
             File initialFile = new File(fileName);
             if (initialFile.isFile()) {
+                log.info("call csvUtils");
                 List<Player> list = csvUtils.csvToPlayerList(initialFile);
                 playerRepository.deleteAll();
                 playerRepository.saveAll(list);
