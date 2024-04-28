@@ -44,6 +44,7 @@ class DatabaseInitializerTest {
 
         //when
         when(csvUtils.csvToPlayerList(initialFile)).thenReturn(list);
+        doAnswer((i) -> null).when(playerRepository).deleteAll();
         when(playerRepository.saveAll(list)).thenReturn(list);
         ReflectionTestUtils.invokeMethod(databaseInitializer, "init");
 
