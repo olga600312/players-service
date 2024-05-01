@@ -14,17 +14,6 @@ public class PlayersServiceApplication  {
 	}
 
 
-	@Bean
-	MeterBinder meterBinderTotal() {
-		return meterRegistry -> {
-			Counter.builder("get_player_all")
-					.description("Get Player counter")
-					.register(meterRegistry);
-			Counter.builder("get_player_by_id")
-					.description("Get Player By Id counter")
-					.tag("id","")
-					.register(meterRegistry);
-		};
-	}
+
 
 }

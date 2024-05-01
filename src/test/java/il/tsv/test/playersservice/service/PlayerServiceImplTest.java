@@ -9,6 +9,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,11 +19,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +37,11 @@ public class PlayerServiceImplTest {
     private MeterRegistry meterRegistry;
     @Mock
     private Counter counter;
+    @Captor
+    private ArgumentCaptor<String> acString;
+
+    @Captor
+    private ArgumentCaptor<Player> acPlayer;
 
     @InjectMocks
     private PlayerServiceImpl playerService;
@@ -65,6 +72,7 @@ public class PlayerServiceImplTest {
         //given
         String PLAYER_ID = UUID.randomUUID().toString();
         Player player = new Player();
+
         PlayerDTO playerDTO = new PlayerDTO();
         playerDTO.setPlayerID(PLAYER_ID);
 
@@ -81,6 +89,13 @@ public class PlayerServiceImplTest {
 
         verify(playerRepository, times(1)).findById(PLAYER_ID);
         verify(playerMapper, times(1)).toPlayerDto(player);
+
+        verify(playerRepository).findById(acString.capture());
+        verify(playerMapper).toPlayerDto(acPlayer.capture());
+
+        assertEquals(PLAYER_ID, acString.getValue());
+        assertEquals(player, acPlayer.getValue());
+
 
         // Verify interactions with meterRegistry
         verify(meterRegistry, times(1)).counter("get_player_by_id", List.of(Tag.of("id", PLAYER_ID)));

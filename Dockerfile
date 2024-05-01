@@ -1,10 +1,22 @@
 #FROM openjdk:latest
 FROM bellsoft/liberica-openjdk-debian:17
 
-#RUN addgroup spring-boot-group && adduser --ingroup spring-boot-group spring-boot
-#USER spring-boot:spring-boot-group
-
 WORKDIR /app
+# Create a logs directory
+RUN mkdir /app/logs
+
+RUN addgroup my-user-group && adduser --ingroup my-user-group my-user
+
+# Set permissions (optional: adjust permissions based on your requirements)
+RUN chown -R my-user:my-user-group /app/logs
+RUN chmod -R 755 /app/logs
+
+USER my-user:my-user-group
+
+
+
+
+
 
 COPY target/players-service-1.0.3.jar /app/players-service.jar
 
