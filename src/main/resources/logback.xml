@@ -33,8 +33,22 @@
         </rollingPolicy>
     </appender>
 
-    <!-- LOG everything at INFO level -->
+    <appender name="Splunk" class="com.splunk.logging.TcpAppender">
+        <RemoteHost>192.168.218.131</RemoteHost>
+        <port>2512</port>
+        <reconnectionDelay>10000</reconnectionDelay>
+        <includeCallerData>true</includeCallerData>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{70}:%line] - %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <logger name="splunk.logger" additivity="false" level="INFO">
+        <appender-ref ref="Splunk"/>
+    </logger>
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="debug"/>
     <root level="info">
+        <appender-ref ref="Splunk"/>
         <appender-ref ref="RollingFile"/>
         <appender-ref ref="Console"/>
     </root>

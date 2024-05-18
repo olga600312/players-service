@@ -3,6 +3,7 @@ package il.tsv.test.playersservice.controller;
 import il.tsv.test.playersservice.dto.PlayerDTO;
 import il.tsv.test.playersservice.error.ErrorsPresentation;
 import il.tsv.test.playersservice.service.PlayerService;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -47,7 +49,7 @@ class PlayerControllerTest {
 
         //then
         List<PlayerDTO> body = responseEntity.getBody();
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertInstanceOf(List.class, body);
         assertNotNull(body);
         assertEquals(list.size(), body.size());
@@ -71,7 +73,7 @@ class PlayerControllerTest {
         ResponseEntity<?> responseEntity = controller.getPageablePlayers(0, 20, Locale.US);
 
         //then
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         if (responseEntity.getBody() instanceof Page<?> p) {
             assertEquals(p.getTotalElements(), list.size());
@@ -83,12 +85,13 @@ class PlayerControllerTest {
         verifyNoMoreInteractions(playerService);
 
     }
+
     @Test
     void getPageablePlayers_IllegalSize() {
         //given
         var locale = Locale.US;
         var errorMessage = "Page size must not be less than one";
-         // when
+        // when
         doReturn(errorMessage).when(messageSource)
                 .getMessage("illegal.size.value", new Object[0], locale);
 
@@ -102,19 +105,20 @@ class PlayerControllerTest {
         if (responseEntity.getBody() instanceof ErrorsPresentation errors) {
             assertNotNull(errors);
             assertFalse(errors.errors().isEmpty());
-            assertEquals(errorMessage,errors.errors().get(0));
+            assertEquals(errorMessage, errors.errors().get(0));
         } else {
             assertInstanceOf(ErrorsPresentation.class, responseEntity.getBody());
         }
-       verifyNoInteractions(playerService);
+        verifyNoInteractions(playerService);
     }
+
     @Test
     void getPageablePlayers_IllegalPageNumber() {
         //given
         var locale = Locale.US;
         var errorMessage = "Page number must not be less than zero";
 
-         // when
+        // when
         doReturn(errorMessage).when(messageSource)
                 .getMessage("illegal.page.value", new Object[0], locale);
 
@@ -128,11 +132,11 @@ class PlayerControllerTest {
         if (responseEntity.getBody() instanceof ErrorsPresentation errors) {
             assertNotNull(errors);
             assertFalse(errors.errors().isEmpty());
-            assertEquals(errorMessage,errors.errors().get(0));
+            assertEquals(errorMessage, errors.errors().get(0));
         } else {
             assertInstanceOf(ErrorsPresentation.class, responseEntity.getBody());
         }
-       verifyNoInteractions(playerService);
+        verifyNoInteractions(playerService);
     }
 
     @Test
@@ -145,7 +149,7 @@ class PlayerControllerTest {
 
         //when
         when(playerService.getPlayerById(playerID)).thenReturn(dto);
-        ResponseEntity<?> responseEntity=controller.getPlayerById(playerID,Locale.US);
+        ResponseEntity<?> responseEntity = controller.getPlayerById(playerID, Locale.US);
 
         //then
         assertNotNull(responseEntity);
@@ -153,11 +157,12 @@ class PlayerControllerTest {
         assertEquals(MediaType.APPLICATION_JSON, responseEntity.getHeaders().getContentType());
         assertNotNull(responseEntity.getBody());
         assertInstanceOf(PlayerDTO.class, responseEntity.getBody());
-        assertEquals(((PlayerDTO)responseEntity.getBody()).getPlayerID(),playerID);
+        assertEquals(((PlayerDTO) responseEntity.getBody()).getPlayerID(), playerID);
 
         verify(playerService).getPlayerById(playerID);
         verifyNoMoreInteractions(playerService);
     }
+
     @Test
     void getPlayerById_PlayerNotExists() {
         //given
@@ -167,12 +172,12 @@ class PlayerControllerTest {
         var errorMessage = "The player 1 not found";
 
 
-               //when
+        //when
         when(playerService.getPlayerById(playerID)).thenReturn(null);
         when(messageSource.getMessage(eq("player.not.found"), eq(new String[]{playerID}), anyString(), eq(locale)))
                 .thenReturn(errorMessage);
 
-        ResponseEntity<?> responseEntity=controller.getPlayerById(playerID,locale);
+        ResponseEntity<?> responseEntity = controller.getPlayerById(playerID, locale);
 
         //then
         assertNotNull(responseEntity);
@@ -181,7 +186,7 @@ class PlayerControllerTest {
         if (responseEntity.getBody() instanceof ErrorsPresentation errors) {
             assertNotNull(errors);
             assertFalse(errors.errors().isEmpty());
-            assertEquals(errorMessage,errors.errors().get(0));
+            assertEquals(errorMessage, errors.errors().get(0));
         } else {
             assertInstanceOf(ErrorsPresentation.class, responseEntity.getBody());
         }
@@ -190,5 +195,50 @@ class PlayerControllerTest {
         verifyNoMoreInteractions(playerService);
     }
 
+    @Test
+    void testProduceNewPlayerEvent() throws PulsarClientException {
+        //given
+        String id = UUID.randomUUID().toString();
+        String name = "TestName";
+
+        PlayerDTO dto = new PlayerDTO();
+        dto.setPlayerID(id);
+        dto.setNameFirst(name);
+
+        //when
+        when(playerService.produceNew(dto)).thenReturn(id);
+
+        ResponseEntity<?> responseEntity = controller.produceNewPlayerEvent(dto);
+        //then
+        verify(playerService).produceNew(any(PlayerDTO.class));
+        assertEquals(responseEntity.getStatusCode(), HttpStatusCode.valueOf(200));
+        assertEquals(responseEntity.getBody(), id);
+        assertEquals(responseEntity.getHeaders().getContentType(), MediaType.TEXT_PLAIN);
+
+    }
+
+    @Test
+    void testProduceNewPlayerEvent_PlayerExists() throws PulsarClientException {
+        //given
+        String id = UUID.randomUUID().toString();
+        String name = "TestName";
+
+        PlayerDTO dto = new PlayerDTO();
+        dto.setPlayerID(id);
+        dto.setNameFirst(name);
+
+        ErrorsPresentation errorsPresentation=new ErrorsPresentation(List.of("Cannot post new Player DTO"));
+
+        //when
+        when(playerService.produceNew(dto)).thenReturn(null);
+
+        ResponseEntity<?> responseEntity = controller.produceNewPlayerEvent(dto);
+        //then
+        verify(playerService).produceNew(any(PlayerDTO.class));
+        assertEquals(responseEntity.getStatusCode(), HttpStatusCode.valueOf(500));
+        assertEquals(responseEntity.getBody(),errorsPresentation );
+        assertEquals(responseEntity.getHeaders().getContentType(), MediaType.APPLICATION_JSON);
+
+    }
 
 }

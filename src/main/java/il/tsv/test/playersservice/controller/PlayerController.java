@@ -4,6 +4,8 @@ import il.tsv.test.playersservice.error.ErrorsPresentation;
 import il.tsv.test.playersservice.dto.PlayerDTO;
 import il.tsv.test.playersservice.service.PlayerService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,9 +25,11 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api")
+@Slf4j
 public class  PlayerController {
     private MessageSource messageSource;
     private PlayerService playerService;
+
 
     /**
      * Retrieves a list of all players.
@@ -78,6 +82,7 @@ public class  PlayerController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlayerById(@PathVariable String id, @RequestHeader(required = false, defaultValue = "en_US") Locale locale) {
+        log.info("Get Player by id {} ",id);
 
         PlayerDTO dto = playerService.getPlayerById(id);
         if (dto == null) {
@@ -91,6 +96,20 @@ public class  PlayerController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto);
         }
+    }
+
+    @PostMapping("/new")
+    public ResponseEntity<?> produceNewPlayerEvent(@RequestBody PlayerDTO dto) throws PulsarClientException {
+          String id=playerService.produceNew(dto);
+          if(id==null){
+              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .body(new ErrorsPresentation(List.of("Cannot post new Player DTO")));
+          } else {
+              return ResponseEntity.ok()
+                      .contentType(MediaType.TEXT_PLAIN)
+                      .body(id);
+          }
     }
 
 
