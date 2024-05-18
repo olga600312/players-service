@@ -3,6 +3,7 @@ package il.tsv.test.playersservice.error;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,14 @@ public class ExceptionHelper {
         return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorsPresentation(List.of("Internal Server Error.", "Contact the development team.")));
+    }
+
+    @ExceptionHandler(value = {PulsarClientException.class})
+    public ResponseEntity<Object> handlePulsarClientException(PulsarClientException ex) {
+        log.error("SQLException ", ex);
+        return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ErrorsPresentation(List.of("PulsarClientException.", ex.getMessage())));
     }
     @ExceptionHandler(value = {RuntimeException.class})
     public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
