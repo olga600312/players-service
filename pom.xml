@@ -76,6 +76,31 @@
             <artifactId>commons-csv</artifactId>
             <version>1.10.0</version>
         </dependency>
+       <!-- &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.pulsar/pulsar-client &ndash;&gt;
+        <dependency>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client</artifactId>
+            <version>3.2.3</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.splunk.logging</groupId>
+            <artifactId>splunk-library-javalogging</artifactId>
+            <version>1.11.7</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!--
+                <dependency>
+                    <groupId>com.splunk.logging</groupId>
+                    <artifactId>hecclient</artifactId>
+                    <version>1.2.1</version>
+                </dependency>
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-pulsar</artifactId>
+        </dependency>
+
+
 
         <dependency>
             <groupId>org.projectlombok</groupId>
