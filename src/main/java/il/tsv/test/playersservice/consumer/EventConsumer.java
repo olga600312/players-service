@@ -44,7 +44,7 @@ public class EventConsumer {
     @PulsarListener(
             topics = "null_value_topic",
             subscriptionName = "${spring.pulsar.consumer.subscription.name}",
-            schemaType = SchemaType.JSON,
+            schemaType = SchemaType.BYTES,
             subscriptionType = SubscriptionType.Shared
     )
     public void consumeNullEvent( @Payload(required = false) PlayerDTO playerDTO,

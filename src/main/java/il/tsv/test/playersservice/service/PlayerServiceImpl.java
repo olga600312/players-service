@@ -31,14 +31,16 @@ public class PlayerServiceImpl implements PlayerService {
     private final MeterRegistry meterRegistry;
     @Value("${spring.pulsar.producer.topic-name}")
     private String topicName;
-    private final PulsarTemplate<Object> pulsarTemplate;
+    private final PulsarTemplate<PlayerDTO> pulsarTemplate;
+    private final PulsarTemplate<byte[]> pulsarByteTemplate;
 
 
-    public PlayerServiceImpl(PlayerRepository playerRepository, PlayerMapper playerMapper, MeterRegistry meterRegistry, PulsarTemplate<Object> pulsarTemplate) {
+    public PlayerServiceImpl(PlayerRepository playerRepository, PlayerMapper playerMapper, MeterRegistry meterRegistry, PulsarTemplate<PlayerDTO> pulsarTemplate, PulsarTemplate<byte[]> pulsarByteTemplate) {
         this.playerRepository = playerRepository;
         this.playerMapper = playerMapper;
         this.meterRegistry = meterRegistry;
         this.pulsarTemplate = pulsarTemplate;
+        this.pulsarByteTemplate = pulsarByteTemplate;
     }
 
     /**
@@ -79,10 +81,10 @@ public class PlayerServiceImpl implements PlayerService {
             }
             Player saved=playerRepository.save(p);
             pulsarTemplate.send(topicName, playerMapper.toPlayerDto(saved));
-            pulsarTemplate
+            pulsarByteTemplate
                     .newMessage(null)
                     .withTopic("null_value_topic")
-                   // .withSchema(Schema.JSON)
+                    .withSchema(Schema.BYTES)
                     .withMessageCustomizer((mb) -> mb.key("key:1234"))
                     .send();
             log.info("EventPublisher::publishPlayerMessage publish the event {}", id);
