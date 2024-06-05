@@ -4,6 +4,8 @@ package il.tsv.test.playersservice.service;
 import il.tsv.test.playersservice.data.Player;
 import il.tsv.test.playersservice.repository.PlayerRepository;
 import il.tsv.test.playersservice.util.CsvUtils;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,10 +25,12 @@ public class DatabaseInitializer {
     private String fileName;
     private final PlayerRepository playerRepository;
     private final CsvUtils csvUtils;
+    private final MeterRegistry meterRegistry;
 
-    public DatabaseInitializer(PlayerRepository playerRepository, CsvUtils csvUtils) {
+    public DatabaseInitializer(PlayerRepository playerRepository, CsvUtils csvUtils, MeterRegistry meterRegistry) {
         this.playerRepository = playerRepository;
         this.csvUtils = csvUtils;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -37,15 +41,21 @@ public class DatabaseInitializer {
     private void init() {
         log.info("start DbInit");
         if (fileName != null) {
-            long t1 = System.currentTimeMillis();
-            File initialFile = new File(fileName);
-            if (initialFile.isFile()) {
-                log.info("call csvUtils");
-                List<Player> list = csvUtils.csvToPlayerList(initialFile);
-                playerRepository.deleteAll();
-                playerRepository.saveAll(list);
+            Timer timer = meterRegistry.timer("timer.dbinit");
+            Timer.Sample sample = Timer.start(meterRegistry);
+            try {
+                long t1 = System.currentTimeMillis();
+                File initialFile = new File(fileName);
+                if (initialFile.isFile()) {
+                    log.info("call csvUtils");
+                    List<Player> list = csvUtils.csvToPlayerList(initialFile);
+                    playerRepository.deleteAll();
+                    playerRepository.saveAll(list);
+                }
+                log.info("DbInit took {} sec", (System.currentTimeMillis() - t1) / 1000);
+            }finally {
+                sample.stop(timer);
             }
-            log.info("DbInit took {} sec", (System.currentTimeMillis() - t1) / 1000);
         }
 
     }

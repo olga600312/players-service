@@ -6,8 +6,10 @@ import il.tsv.test.playersservice.mapper.PlayerMapper;
 import il.tsv.test.playersservice.repository.PlayerRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.Schema;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,7 +31,7 @@ public class PlayerServiceImpl implements PlayerService {
     private final MeterRegistry meterRegistry;
     @Value("${spring.pulsar.producer.topic-name}")
     private String topicName;
-    private PulsarTemplate<Object> pulsarTemplate;
+    private final PulsarTemplate<Object> pulsarTemplate;
 
 
     public PlayerServiceImpl(PlayerRepository playerRepository, PlayerMapper playerMapper, MeterRegistry meterRegistry, PulsarTemplate<Object> pulsarTemplate) {
@@ -77,6 +79,12 @@ public class PlayerServiceImpl implements PlayerService {
             }
             Player saved=playerRepository.save(p);
             pulsarTemplate.send(topicName, playerMapper.toPlayerDto(saved));
+            pulsarTemplate
+                    .newMessage(null)
+                    .withTopic("null_value_topic")
+                   // .withSchema(Schema.JSON)
+                    .withMessageCustomizer((mb) -> mb.key("key:1234"))
+                    .send();
             log.info("EventPublisher::publishPlayerMessage publish the event {}", id);
         }
         return id;
@@ -84,7 +92,7 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     /**
-     * Retrieves a page list of players specified by the pageable parm.
+     * Retrieves a page list of players specified by the pageable parameter.
      *
      * @param pageable Pageable object specifying the page number and size.
      * @return Page<PlayerDTO> representing a page of player(dto) data.
@@ -92,10 +100,20 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     public Page<PlayerDTO> getAllPlayers(Pageable pageable) {
         meterRegistry.counter("get_player_all", List.of()).increment();
-        Page<Player> page = playerRepository.findAll(pageable);
-        List<PlayerDTO> playerDTOs = page.getContent().stream()
-                .map(e -> playerMapper.toPlayerDto(e))
-                .collect(Collectors.toList());
+        Timer timer = meterRegistry.timer("timer.players.all");
+        Timer.Sample sample = Timer.start(meterRegistry);
+        Page<Player> page;
+        List<PlayerDTO> playerDTOs;
+        try {
+            page = playerRepository.findAll(pageable);
+            playerDTOs = page.getContent().stream()
+                    .map(playerMapper::toPlayerDto)
+                    .collect(Collectors.toList());
+        } finally {
+            sample.stop(timer);
+
+        }
+
         return new PageImpl<>(playerDTOs, page.getPageable(), page.getTotalElements());
     }
 }
