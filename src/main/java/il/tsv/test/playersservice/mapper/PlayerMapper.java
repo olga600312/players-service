@@ -2,6 +2,7 @@ package il.tsv.test.playersservice.mapper;
 
 
 import il.tsv.test.playersservice.data.Player;
+import il.tsv.test.playersservice.data.PlayerAWS;
 import il.tsv.test.playersservice.dto.PlayerDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -24,5 +25,11 @@ public  class PlayerMapper {
     }
     public  Player toPlayer(PlayerDTO dto) {
         return modelMapper.map(dto, Player.class);
+    }
+    public  PlayerDTO toPlayerAWSDto(PlayerAWS player){
+        return modelMapper.map(player, PlayerDTO.class);
+    }
+    public  PlayerAWS toPlayerAWS(PlayerDTO dto) {
+        return modelMapper.map(dto, PlayerAWS.class);
     }
 }
