@@ -129,6 +129,7 @@ public class PlayerServiceAWS implements PlayerService {
         try {
             // Pagination parameters
             int pageSize = pageable.getPageSize(); // Number of items per page
+            log.info("Page siaze is {}",pageSize);
             Map<String, AttributeValue> lastEvaluatedKey = null;
             // Scan expression with pagination
             DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
